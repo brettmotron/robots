@@ -5,6 +5,10 @@ public class ConveyorTile : Tile {
 
 	public Facing facing;
 	
+	void Awake() {
+		tileType = TileType.Conveyor;	
+	}
+	
 	void Start() {
 		//Random Facing for time being
 		facing = (Facing)Random.Range(0,4);

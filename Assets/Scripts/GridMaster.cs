@@ -70,6 +70,7 @@ public class GridMaster : MonoBehaviour {
 				newTile.y_pos = j;
 				newTile.transform.parent = myTransform;
 				grid[i,j] = newTile;
+				TileVisualizer.instance.SetVisualizationForTile(newTile);
 			}
 		}
 		

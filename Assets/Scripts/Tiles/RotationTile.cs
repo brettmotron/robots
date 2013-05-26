@@ -5,6 +5,17 @@ public class RotationTile : Tile {
 	
 	public Rotation rotation;
 	
+	void Awake() {
+		switch (rotation) {
+			case Rotation.Left:
+				tileType = TileType.RotationLeft;
+				break;
+			case Rotation.Right:
+				tileType = TileType.RotationRight;
+				break;
+		}
+	}
+	
 	void Start() {
 		name = string.Format("Rotation Tile ({0},{1})-{2}",x_pos,y_pos,rotation);	
 	}
