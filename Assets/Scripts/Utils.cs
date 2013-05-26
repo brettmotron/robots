@@ -26,3 +26,8 @@ public enum Facing {
 	South,
 	West
 }
+
+public enum Rotation {
+	Left,
+	Right
+}

@@ -198,4 +198,27 @@ public class GridMaster : MonoBehaviour {
 			robot.isDead = true;
 		}			
 	}
+	
+	public IEnumerator RotateRobotLeft(Robot robot) {
+		Facing newFacing = Utils.RotateLeftFacing(robot.facing);
+		float targetAngle = 90 * (int)newFacing;
+		while (Mathf.Abs(targetAngle - robot.transform.localEulerAngles.y) > 2) {
+			robot.transform.Rotate(0, -Time.deltaTime * 45, 0);
+			yield return null;
+		}
+		robot.facing = newFacing;
+		robot.transform.localEulerAngles = targetAngle * Vector3.up;			
+	}
+	
+	
+	public IEnumerator RotateRobotRight(Robot robot) {
+		Facing newFacing = Utils.RotateRightFacing(robot.facing);
+		float targetAngle = 90 * (int)newFacing;
+		while (Mathf.Abs(targetAngle - robot.transform.localEulerAngles.y) > 2) {
+			robot.transform.Rotate(0, Time.deltaTime * 45, 0);
+			yield return null;
+		}
+		robot.facing = newFacing;
+		robot.transform.localEulerAngles = targetAngle * Vector3.up;			
+	}	
 }
