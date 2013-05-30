@@ -5,7 +5,8 @@ public class RotationTile : Tile {
 	
 	public Rotation rotation;
 	
-	void Awake() {
+	public override void Setup ()
+	{
 		switch (rotation) {
 			case Rotation.Left:
 				tileType = TileType.RotationLeft;
@@ -14,10 +15,8 @@ public class RotationTile : Tile {
 				tileType = TileType.RotationRight;
 				break;
 		}
-	}
-	
-	void Start() {
-		name = string.Format("Rotation Tile ({0},{1})-{2}",x_pos,y_pos,rotation);	
+		
+		name = string.Format("Rotation Tile ({0},{1}) ({2})",x_pos,y_pos,rotation);	
 	}
 	
 	public override IEnumerator ProcessEffect(Robot robot) {

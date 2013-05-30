@@ -36,7 +36,9 @@ public class BoardMaster : MonoBehaviour {
 				newTile.x_pos = i;
 				newTile.y_pos = j;
 				newTile.transform.parent = myTransform;
-				newTile.name = string.Format("Basic Tile ({0},{1})", i, j);
+				
+				newTile.Setup();
+				
 				grid[i,j] = newTile;
 				TileVisualizer.instance.SetVisualizationForTile(newTile);
 			}

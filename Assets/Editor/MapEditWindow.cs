@@ -56,8 +56,23 @@ public class MapEditWindow : EditorWindow {
 			Debug.Log("Tile grabbing is now " + tileGrabbingActive);
 		}
 		
-		if (GUILayout.Button("Replace with conveyor")) {
-			ReplaceSelectedTiles(TileType.Conveyor);	
+		EditorGUILayout.BeginHorizontal();
+		
+		if (GUILayout.Button("Rotate Left")) {
+			RotateSelectionLeft();
+		}
+		if (GUILayout.Button("Rotate Right")) {
+			RotateSelectionRight();
+		}
+		
+		EditorGUILayout.EndHorizontal();
+		
+		EditorGUILayout.LabelField("Replace Tile");
+		
+		for (int i=0; i < (int)TileType.MAX; i++) {
+			if (GUILayout.Button(((TileType)i).ToString())) {
+				ReplaceSelectedTiles((TileType)i);	
+			}
 		}
 	}
 	
@@ -84,25 +99,77 @@ public class MapEditWindow : EditorWindow {
 	void ReplaceSelectedTiles(TileType newType) {
 		var newSelection = new List<GameObject>();
 		var newSelectedTiles = new List<Tile>();
+
+		string prefabPath = "";
+		Tile newTile = null;
+		
+		
+		switch(newType) {
+			case TileType.Basic:
+				prefabPath = "Assets/Prefabs/Tiles/Basic Tile.prefab";
+				break;
+			case TileType.Conveyor:
+				prefabPath = "Assets/Prefabs/Tiles/Conveyor Tile.prefab";
+				break;
+			case TileType.RotationLeft:
+				prefabPath = "Assets/Prefabs/Tiles/Rotation Tile (Left).prefab";
+				break;
+			case TileType.RotationRight:
+				prefabPath = "Assets/Prefabs/Tiles/Rotation Tile (Right).prefab";
+				break;
+			default:
+				Debug.Log("No path for replacement prefab!");
+				break;
+		}
+		
+		var prefab = Resources.LoadAssetAtPath(prefabPath, typeof(Tile));
+					
+		if (null == prefab) {
+			Debug.Log("Replacement prefab not found!");	
+			return;
+		}
 		
 		foreach (Tile tile in selectedTiles) {
-			if (newType == TileType.Conveyor) {
-				var prefab = Resources.LoadAssetAtPath("Assets/Prefabs/Tiles/Conveyor Tile.prefab", typeof(Tile));
-				var newTile = (ConveyorTile)GameObject.Instantiate(prefab, tile.transform.position, tile.transform.rotation);
-				newTile.tileType = newType;
-				newTile.x_pos = tile.x_pos;
-				newTile.y_pos = tile.y_pos;
-				newTile.transform.parent = tile.transform.parent;
-				newTile.name = string.Format("Conveyor Tile ({0},{1})", newTile.x_pos, newTile.y_pos);
-				newMap.SetTileForPosition(newTile, tile.x_pos, tile.y_pos);
-				TileVisualizer.instance.SetVisualizationForTile(newTile);
-				newSelection.Add(newTile.gameObject);
-				newSelectedTiles.Add(newTile);
-				DestroyImmediate(tile.gameObject);
+			
+			newTile = (Tile)GameObject.Instantiate(prefab, tile.transform.position, tile.transform.rotation);
+			
+			if (null == newTile) {
+				Debug.Log("Wasn't able to create replacement tile!");	
+				return;
 			}
+			
+			newTile.transform.parent = tile.transform.parent;
+			
+			newTile.x_pos = tile.x_pos;
+			newTile.y_pos = tile.y_pos;
+			newTile.facing = tile.facing;
+			
+			newTile.Setup();
+			
+			newMap.SetTileForPosition(newTile, tile.x_pos, tile.y_pos);
+			TileVisualizer.instance.SetVisualizationForTile(newTile);
+			
+			newSelection.Add(newTile.gameObject);
+			newSelectedTiles.Add(newTile);			
+			
+			DestroyImmediate(tile.gameObject);
 		}
 		
 		Selection.objects = newSelection.ToArray();
 		selectedTiles = newSelectedTiles;
 	}
+	
+	void RotateSelectionRight() {
+		foreach (Tile tile in selectedTiles) {
+			tile.facing = Utils.RotateRightFacing(tile.facing);
+			tile.transform.localRotation = Utils.RotationForFacing(tile.facing);
+		}
+	}
+	
+	void RotateSelectionLeft() {
+		foreach (Tile tile in selectedTiles) {
+			tile.facing = Utils.RotateLeftFacing(tile.facing);
+			tile.transform.localRotation = Utils.RotationForFacing(tile.facing);
+		}
+	}	
 }

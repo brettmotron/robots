@@ -10,12 +10,14 @@ public class Tile : MonoBehaviour {
 	public int x_pos;
 	public int y_pos;
 	
+	public Facing facing;
+	
 	public Wall[] adjacentWalls = new Wall[4];
 	
 	public GameObject visualization;
 	
-	void Start() {
-		name = string.Format("Tile ({0},{1})",x_pos,y_pos);	
+	public virtual void Setup() {
+		
 	}
 	
 	public virtual IEnumerator ProcessEffect(Robot robot) {

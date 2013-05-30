@@ -18,6 +18,7 @@ public class Utils : MonoBehaviour {
 	static public Quaternion RotationForFacing(Facing originalFacing) {
 		return Quaternion.AngleAxis((int)originalFacing * 90, Vector3.up);	
 	}
+	
 }
 
 public enum Facing {
