@@ -2,6 +2,7 @@ using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
 
+[ExecuteInEditMode]
 public class TileVisualizer : MonoBehaviour {
 
 	public static TileVisualizer instance;
@@ -10,6 +11,10 @@ public class TileVisualizer : MonoBehaviour {
 	
 	void Awake() {
 		instance = this;	
+	}
+	
+	public void Setup() {
+		Awake();
 	}
 	
 	public void SetVisualizationForTile(Tile tile) {
