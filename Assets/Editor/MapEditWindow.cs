@@ -84,9 +84,15 @@ public class MapEditWindow : EditorWindow {
 		EditorGUILayout.BeginVertical();
 		
 		for (int i=0; i < 4; i++) {
+			EditorGUILayout.BeginHorizontal();
 			if (GUILayout.Button("Add Wall " + ((Facing)i).ToString())) {
 				AddWallInDirection((Facing)i);	
 			}
+			if (GUILayout.Button("Remove Wall " + ((Facing)i).ToString())) {
+				RemoveWallInDirection((Facing)i);	
+			}
+			
+			EditorGUILayout.EndHorizontal();
 		}
 		
 		EditorGUILayout.EndVertical();
@@ -229,5 +235,27 @@ public class MapEditWindow : EditorWindow {
 			
 			TileVisualizer.instance.SetVisualizationForWall(newWall);
 		}
+	}
+	
+	void RemoveWallInDirection(Facing direction) {
+		foreach (Tile tile in selectedTiles) {
+			Wall wallToRemove = tile.adjacentWalls[(int)direction];
+			
+			if (null == wallToRemove) {
+				Debug.Log("Wall doesn't exist in that direction!");
+				continue;
+			}
+			
+			foreach (Tile adjTile in wallToRemove.adjacentTiles) {
+				if (adjTile.adjacentWalls[(int)direction] == wallToRemove) {
+					adjTile.adjacentWalls[(int)direction] = null;
+				}
+				if (adjTile.adjacentWalls[(int)Utils.UTurnFacing(direction)] == wallToRemove) {
+					adjTile.adjacentWalls[(int)Utils.UTurnFacing(direction)] = null;	
+				}
+			}
+			
+			DestroyImmediate(wallToRemove.gameObject);
+		}			
 	}
 }
