@@ -69,12 +69,29 @@ public class MapEditWindow : EditorWindow {
 		
 		EditorGUILayout.LabelField("Replace Tile");
 		
+		EditorGUILayout.BeginVertical();
+		
 		for (int i=0; i < (int)TileType.MAX; i++) {
 			if (GUILayout.Button(((TileType)i).ToString())) {
 				ReplaceSelectedTiles((TileType)i);	
 			}
 		}
+		
+		EditorGUILayout.EndVertical();
+		
+		EditorGUILayout.LabelField("Walls");
+		
+		EditorGUILayout.BeginVertical();
+		
+		for (int i=0; i < 4; i++) {
+			if (GUILayout.Button("Add Wall " + ((Facing)i).ToString())) {
+				AddWallInDirection((Facing)i);	
+			}
+		}
+		
+		EditorGUILayout.EndVertical();
 	}
+	
 	
 	void GenerateNewMap(int xSize, int ySize) {
 		if (xSize < 1 || ySize < 1) {
@@ -95,6 +112,7 @@ public class MapEditWindow : EditorWindow {
 		newMap.tileSeparation = tileSeparation;
 		newMap.Setup(xSize, ySize);
 	}
+	
 	
 	void ReplaceSelectedTiles(TileType newType) {
 		var newSelection = new List<GameObject>();
@@ -159,6 +177,7 @@ public class MapEditWindow : EditorWindow {
 		selectedTiles = newSelectedTiles;
 	}
 	
+	
 	void RotateSelectionRight() {
 		foreach (Tile tile in selectedTiles) {
 			tile.facing = Utils.RotateRightFacing(tile.facing);
@@ -166,10 +185,49 @@ public class MapEditWindow : EditorWindow {
 		}
 	}
 	
+	
 	void RotateSelectionLeft() {
 		foreach (Tile tile in selectedTiles) {
 			tile.facing = Utils.RotateLeftFacing(tile.facing);
 			tile.transform.localRotation = Utils.RotationForFacing(tile.facing);
 		}
-	}	
+	}
+	
+	void AddWallInDirection(Facing direction) {
+		string wallPath = "Assets/Prefabs/Walls/Basic Wall.prefab";
+		var prefab = Resources.LoadAssetAtPath(wallPath, typeof(Wall));
+				
+		if (null == prefab) {
+			Debug.Log("Wall prefab not found!");	
+			return;
+		}
+		
+		foreach (Tile tile in selectedTiles) {
+			if (null != tile.adjacentWalls[(int)direction]) {
+				Debug.Log("Wall already exists in that direction!");
+				continue;
+			}
+			
+			var rotation = Utils.RotationForFacing(direction);
+			var position = (new Vector3(tile.x_pos, 0, tile.y_pos) * (1 + tileSeparation)) + (0.5f * (1 + tileSeparation) * Utils.UnitOffsetForDirection(direction));
+			
+			Wall newWall = (Wall)GameObject.Instantiate(prefab, position, rotation);
+			
+			newWall.transform.parent = tile.transform.parent;
+			newWall.facing = direction;
+			
+			newWall.Setup();
+			
+			newWall.adjacentTiles.Add(tile);
+			tile.adjacentWalls[(int)direction] = newWall;
+			
+			var otherTile = newMap.GetTileInDirection(tile, direction);
+			if (null != otherTile) {
+				newWall.adjacentTiles.Add(otherTile);
+				otherTile.adjacentWalls[(int)Utils.UTurnFacing(direction)] = newWall;
+			}	
+			
+			TileVisualizer.instance.SetVisualizationForWall(newWall);
+		}
+	}
 }

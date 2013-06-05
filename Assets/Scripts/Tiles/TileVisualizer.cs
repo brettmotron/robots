@@ -7,6 +7,7 @@ public class TileVisualizer : MonoBehaviour {
 
 	public static TileVisualizer instance;
 	public List<GameObject> visualizationPrefabs;
+	public List<GameObject> wallVisualizationPrefabs;
 	
 	
 	void Awake() {
@@ -29,5 +30,19 @@ public class TileVisualizer : MonoBehaviour {
 		newVis.transform.localRotation = Quaternion.identity;
 		newVis.transform.localScale = Vector3.one;
 		tile.visualization = newVis;
+	}
+	
+	public void SetVisualizationForWall(Wall wall) {
+		if (null != wall.visualization) {
+			Debug.Log("Wall already has a visualization!", wall);
+			return;
+		}
+		
+		GameObject newVis = (GameObject)GameObject.Instantiate(wallVisualizationPrefabs[(int)wall.wallType]);
+		newVis.transform.parent = wall.transform;
+		newVis.transform.localPosition = Vector3.zero;
+		newVis.transform.localRotation = Quaternion.identity;
+		newVis.transform.localScale = Vector3.one;
+		wall.visualization = newVis;		
 	}
 }

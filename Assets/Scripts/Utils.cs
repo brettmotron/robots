@@ -19,6 +19,20 @@ public class Utils : MonoBehaviour {
 		return Quaternion.AngleAxis((int)originalFacing * 90, Vector3.up);	
 	}
 	
+	static public Vector3 UnitOffsetForDirection(Facing direction) {
+		switch (direction) {
+			case Facing.North:
+				return Vector3.forward;
+			case Facing.East:
+				return Vector3.right;
+			case Facing.South:
+				return Vector3.back;
+			case Facing.West:
+				return Vector3.left;
+		}
+		return Vector3.zero;
+	}
+		
 }
 
 public enum Facing {
