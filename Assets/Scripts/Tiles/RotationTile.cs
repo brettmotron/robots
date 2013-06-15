@@ -22,9 +22,9 @@ public class RotationTile : Tile {
 	public override IEnumerator ProcessEffect(Robot robot) {
 		Debug.Log("I'm a rotation tile!", this);
 		if (rotation == Rotation.Right) {
-			yield return StartCoroutine(GridMaster.SharedInstance.RotateRobotRight(robot));
+			yield return StartCoroutine(BoardMaster.SharedInstance.RotateRobotRight(robot));
 		} else if (rotation == Rotation.Left) {
-			yield return StartCoroutine(GridMaster.SharedInstance.RotateRobotLeft(robot));
+			yield return StartCoroutine(BoardMaster.SharedInstance.RotateRobotLeft(robot));
 		} else {
 			Debug.Log("This rotation tile is not correct at all.", this);	
 		}

@@ -10,7 +10,7 @@ public class ConveyorTile : Tile {
 	
 	public override IEnumerator ProcessEffect(Robot robot) {
 		Debug.Log("I'm a conveyor tile!", this);
-		yield return StartCoroutine(GridMaster.SharedInstance.MoveRobotInDirection(robot, facing));
+		yield return StartCoroutine(BoardMaster.SharedInstance.MoveRobotInDirection(robot, facing));
 	}
 	
 }

@@ -53,7 +53,7 @@ public class Robot : MonoBehaviour {
 	
 	void Start() {
 		commandList = new List<Command>();
-		currentTile = GridMaster.SharedInstance.GetStartingTile();
+		currentTile = BoardMaster.SharedInstance.GetStartingTile();
 	}
 		
 	
@@ -71,7 +71,7 @@ public class Robot : MonoBehaviour {
 	
 	IEnumerator ProcessNextCommand() {
 		if (isDead) {
-			return false;	
+            yield break;	
 		}
 		
 		
@@ -92,7 +92,7 @@ public class Robot : MonoBehaviour {
 			yield break;
 		}
 		
-		yield return StartCoroutine(GridMaster.SharedInstance.ProcessBoardEffects(this));
+		yield return StartCoroutine(BoardMaster.SharedInstance.ProcessBoardEffects(this));
 	}
 	
 	public void QueueCommand(Command command) {
@@ -160,7 +160,7 @@ public class Robot : MonoBehaviour {
 		}
 		
 		Vector3 pos;
-		Tile newTile = GridMaster.SharedInstance.GetForwardTile(currentTile, facing, out pos);
+		Tile newTile = BoardMaster.SharedInstance.GetForwardTile(currentTile, facing, out pos);
 		
 		while (Vector3.SqrMagnitude(pos - transform.position) > 0.05*0.05) {
 			transform.Translate(Vector3.forward * Time.deltaTime * speed);
@@ -182,7 +182,7 @@ public class Robot : MonoBehaviour {
 		}
 		
 		Vector3 pos;
-		Tile newTile = GridMaster.SharedInstance.GetBackwardTile(currentTile, facing, out pos);
+		Tile newTile = BoardMaster.SharedInstance.GetBackwardTile(currentTile, facing, out pos);
 		
 		while (Vector3.SqrMagnitude(pos - transform.position) > 0.05*0.05) {
 			transform.Translate(Vector3.back * Time.deltaTime * speed);
