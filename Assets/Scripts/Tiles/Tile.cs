@@ -1,6 +1,7 @@
 using UnityEngine;
 using System.Collections;
 
+[System.Serializable]
 public abstract class Tile : MonoBehaviour {
 	
 	static public float tileSize = 1;
@@ -12,6 +13,7 @@ public abstract class Tile : MonoBehaviour {
 	
 	public Facing facing;
 	
+    [SerializeField]
 	public Wall[] adjacentWalls = new Wall[4];
 	
 	public GameObject visualization;

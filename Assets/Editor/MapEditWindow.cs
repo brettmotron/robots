@@ -10,36 +10,33 @@ public class MapEditWindow : EditorWindow {
 	int ySize = 1;
 	float tileSeparation = 0.1f;
 	
-	bool tileGrabbingActive;
-	
-	BoardMaster newMap;
+	BoardMaster currentMap;
 	List<Tile> selectedTiles = new List<Tile>();
 	
 	[MenuItem("Robots/Map Edit Window")]
 	static void ShowWindow() {
 		EditorWindow.GetWindow(typeof(MapEditWindow));	
 	}
-	
-	void Update() {
-		if (tileGrabbingActive) {
-			if (Selection.transforms.Length > 0) {	
-				var newSelection = new List<GameObject>();
-				selectedTiles.Clear();
-				foreach (Transform transform in Selection.transforms) {
-					var temp = transform;
-					while (temp != null) {
-						if (temp.GetComponent<Tile>() != null) {
-							newSelection.Add(temp.gameObject);
-							selectedTiles.Add(temp.GetComponent<Tile>());
-							break;	
-						}
-						temp = temp.parent;
-					}
-				}
-				Selection.objects = newSelection.ToArray();
-			}
-		}
-	}
+
+    void GrabTilesFromSelection()
+    {
+        if (Selection.transforms.Length > 0) {
+            var newSelection = new List<GameObject>();
+            selectedTiles.Clear();
+            foreach (Transform transform in Selection.transforms) {
+                var temp = transform;
+                while (temp != null) {
+                    if (temp.GetComponent<Tile>() != null) {
+                        newSelection.Add(temp.gameObject);
+                        selectedTiles.Add(temp.GetComponent<Tile>());
+                        break;
+                    }
+                    temp = temp.parent;
+                }
+            }
+            Selection.objects = newSelection.ToArray();
+        }
+    }
 	
 	void OnGUI() {
 		EditorGUILayout.BeginHorizontal();
@@ -50,11 +47,10 @@ public class MapEditWindow : EditorWindow {
 		if (GUILayout.Button("Generate Blank Map")) {
 			GenerateNewMap(xSize, ySize);	
 		}
-		newMap = (BoardMaster)EditorGUILayout.ObjectField("Current Map", newMap, typeof(BoardMaster), true);
-		if (GUILayout.Button(string.Format("Set TileGrabbing {0}", !tileGrabbingActive))) {
-			tileGrabbingActive = !tileGrabbingActive;
-			Debug.Log("Tile grabbing is now " + tileGrabbingActive);
-		}
+		currentMap = (BoardMaster)EditorGUILayout.ObjectField("Current Map", currentMap, typeof(BoardMaster), true);
+        if (GUILayout.Button("Save Map as Prefab")) {
+            SaveCurrentMapAsPrefab();
+        }
 		
 		EditorGUILayout.BeginHorizontal();
 		
@@ -111,16 +107,35 @@ public class MapEditWindow : EditorWindow {
 		
 		++currentMapNumber;
 		
-		newMap = new GameObject().AddComponent<BoardMaster>();
-		newMap.name = "New Map " + currentMapNumber;
-		newMap.basicTilePrefab = (Tile)Resources.LoadAssetAtPath("Assets/Prefabs/Tiles/Basic Tile.prefab", typeof(Tile));
-		newMap.tileSize = 1;
-		newMap.tileSeparation = tileSeparation;
-		newMap.Setup(xSize, ySize);
+		currentMap = new GameObject().AddComponent<BoardMaster>();
+		currentMap.name = "New Map " + currentMapNumber;
+		currentMap.basicTilePrefab = (Tile)Resources.LoadAssetAtPath("Assets/Prefabs/Tiles/Basic Tile.prefab", typeof(Tile));
+		currentMap.tileSize = 1;
+		currentMap.tileSeparation = tileSeparation;
+		currentMap.Setup(xSize, ySize);
 	}
+
+
+    void SaveCurrentMapAsPrefab()
+    {
+        if (null == currentMap) {
+            Debug.LogWarning("We don't have a map to save!");
+            return;
+        }
+
+        PrefabUtility.CreatePrefab("Assets/Prefabs/Maps/" + currentMap.name + ".prefab", currentMap.gameObject, ReplacePrefabOptions.ReplaceNameBased);
+        PrefabUtility.DisconnectPrefabInstance(currentMap);
+    }
 	
 	
 	void ReplaceSelectedTiles(TileType newType) {
+        if (null == currentMap) {
+            Debug.Log("We don't have a map!");
+            return;
+        }
+
+        GrabTilesFromSelection();
+
 		var newSelection = new List<GameObject>();
 		var newSelectedTiles = new List<Tile>();
 
@@ -170,7 +185,7 @@ public class MapEditWindow : EditorWindow {
 			
 			newTile.Setup();
 			
-			newMap.SetTileForPosition(newTile, tile.x_pos, tile.y_pos);
+			currentMap.SetTileForPosition(newTile, tile.x_pos, tile.y_pos);
 			TileVisualizer.instance.SetVisualizationForTile(newTile);
 			
 			newSelection.Add(newTile.gameObject);
@@ -185,6 +200,8 @@ public class MapEditWindow : EditorWindow {
 	
 	
 	void RotateSelectionRight() {
+        GrabTilesFromSelection();
+
 		foreach (Tile tile in selectedTiles) {
 			tile.facing = Utils.RotateRightFacing(tile.facing);
 			tile.transform.localRotation = Utils.RotationForFacing(tile.facing);
@@ -193,6 +210,8 @@ public class MapEditWindow : EditorWindow {
 	
 	
 	void RotateSelectionLeft() {
+        GrabTilesFromSelection();
+
 		foreach (Tile tile in selectedTiles) {
 			tile.facing = Utils.RotateLeftFacing(tile.facing);
 			tile.transform.localRotation = Utils.RotationForFacing(tile.facing);
@@ -200,6 +219,8 @@ public class MapEditWindow : EditorWindow {
 	}
 	
 	void AddWallInDirection(Facing direction) {
+        GrabTilesFromSelection();
+
 		string wallPath = "Assets/Prefabs/Walls/Basic Wall.prefab";
 		var prefab = Resources.LoadAssetAtPath(wallPath, typeof(Wall));
 				
@@ -227,7 +248,7 @@ public class MapEditWindow : EditorWindow {
 			newWall.adjacentTiles.Add(tile);
 			tile.adjacentWalls[(int)direction] = newWall;
 			
-			var otherTile = newMap.GetTileInDirection(tile, direction);
+			var otherTile = currentMap.GetTileInDirection(tile, direction);
 			if (null != otherTile) {
 				newWall.adjacentTiles.Add(otherTile);
 				otherTile.adjacentWalls[(int)Utils.UTurnFacing(direction)] = newWall;
@@ -238,6 +259,8 @@ public class MapEditWindow : EditorWindow {
 	}
 	
 	void RemoveWallInDirection(Facing direction) {
+        GrabTilesFromSelection();
+
 		foreach (Tile tile in selectedTiles) {
 			Wall wallToRemove = tile.adjacentWalls[(int)direction];
 			

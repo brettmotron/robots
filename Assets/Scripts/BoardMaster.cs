@@ -1,6 +1,18 @@
 using UnityEngine;
 using System.Collections;
 
+[System.Serializable]
+public class TileGrid
+{
+    [System.Serializable]
+    public class TileList
+    {
+        public Tile[] row;
+    }
+
+    public TileList[] column;
+}
+
 public class BoardMaster : MonoBehaviour {
 
 	static public BoardMaster SharedInstance;
@@ -10,7 +22,10 @@ public class BoardMaster : MonoBehaviour {
 	public float tileSize;
 	public float tileSeparation;
 
-	Tile[,] grid;
+    [SerializeField]
+	public Tile[,] grid;
+
+    public TileGrid betterGrid;
 	
 	Transform myTransform;
 	
@@ -24,6 +39,13 @@ public class BoardMaster : MonoBehaviour {
 		gridSizeY = ySize;
 		
 		grid = new Tile[xSize,ySize];
+
+        betterGrid = new TileGrid();
+        betterGrid.column = new TileGrid.TileList[xSize];
+        for (int i = 0; i < xSize; ++i) {
+            betterGrid.column[i] = new TileGrid.TileList();
+            betterGrid.column[i].row = new Tile[ySize];
+        }
 		
 		GenerateGrid();
 	}
@@ -40,15 +62,24 @@ public class BoardMaster : MonoBehaviour {
 				newTile.Setup();
 				
 				grid[i,j] = newTile;
+
+                betterGrid.column[i].row[j] = newTile;
+
 				TileVisualizer.instance.SetVisualizationForTile(newTile);
 			}
 		}
 	}
 	
 	public void SetTileForPosition(Tile tile, int xPos, int yPos) {
+        if (null == betterGrid) {
+            Debug.LogError("Grid is missing!");
+            return;
+        }
+
 		tile.x_pos = xPos;
 		tile.y_pos = yPos;
-		grid[xPos,yPos] = tile;
+		//grid[xPos,yPos] = tile;
+        betterGrid.column[xPos].row[yPos] = tile;
 	}
 	
 	public Tile GetTileInDirection(Tile currentTile, Facing direction) {
@@ -82,7 +113,8 @@ public class BoardMaster : MonoBehaviour {
 			return null;
 		}		
 		
-		Tile resultTile = grid[newX, newY];
+		//Tile resultTile = grid[newX, newY];
+        Tile resultTile = betterGrid.column[newX].row[newY];
 		return resultTile;
 	}	
 }
