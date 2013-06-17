@@ -54,6 +54,10 @@ public class Robot : MonoBehaviour {
 	void Start() {
 		commandList = new List<Command>();
 		currentTile = BoardMaster.SharedInstance.GetStartingTile();
+		transform.position = currentTile.transform.position;
+		facing = currentTile.facing;
+		
+		transform.rotation = Utils.RotationForFacing(facing);
 	}
 		
 	

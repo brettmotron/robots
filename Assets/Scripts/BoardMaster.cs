@@ -1,5 +1,6 @@
 using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
 
 [System.Serializable]
 public class TileGrid
@@ -121,7 +122,24 @@ public class BoardMaster : MonoBehaviour {
 
     public Tile GetStartingTile()
     {
-        return betterGrid.column[0].row[0];
+    	List<StartingTile> startingList = new List<StartingTile>();
+		Tile tileToCheck;
+		for (int x=0; x<gridSizeX; ++x) {
+			for (int y=0; y<gridSizeY; ++y) {
+				tileToCheck = betterGrid.column[x].row[y];
+				if (tileToCheck.tileType == TileType.Starting) {
+					//Debug.Log("Adding Tile to Starting List: " + tileToCheck.name);
+					startingList.Add(tileToCheck as StartingTile);
+				}
+			}
+		}
+		
+		if (startingList.Count <= 0) {
+			Debug.Log("This map has no starting tiles!");
+			return null;
+		}
+		
+		return startingList[Random.Range(0, startingList.Count)];
     }
 
 

@@ -18,6 +18,12 @@ public class TileVisualizer : MonoBehaviour {
 		Awake();
 	}
 	
+	void Update() {
+		if (null == instance) {
+			instance = this;	
+		}
+	}
+	
 	public void SetVisualizationForTile(Tile tile) {
 		if (null != tile.visualization) {
 			Debug.Log("Tile already has a visualization!", tile);

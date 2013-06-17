@@ -30,6 +30,7 @@ public abstract class Tile : MonoBehaviour {
 
 public enum TileType {
 	Basic,
+	Starting,
 	Conveyor,
 	RotationLeft,
 	RotationRight,

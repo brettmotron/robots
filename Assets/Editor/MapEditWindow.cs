@@ -8,7 +8,7 @@ public class MapEditWindow : EditorWindow {
 	int currentMapNumber;
 	int xSize = 1;
 	int ySize = 1;
-	float tileSeparation = 0.1f;
+	float tileSeparation = 0.05f;
 	
 	BoardMaster currentMap;
 	List<Tile> selectedTiles = new List<Tile>();
@@ -102,7 +102,8 @@ public class MapEditWindow : EditorWindow {
 		}
 		
 		if (null == TileVisualizer.instance) {
-			//GameObject.Find("TileVisualizer").GetComponent<TileVisualizer>().Setup();
+			Debug.LogError("No TileVisualizer Found!");
+			return;
 		}
 		
 		++currentMapNumber;
@@ -125,6 +126,7 @@ public class MapEditWindow : EditorWindow {
 
         PrefabUtility.CreatePrefab("Assets/Prefabs/Maps/" + currentMap.name + ".prefab", currentMap.gameObject, ReplacePrefabOptions.ReplaceNameBased);
         PrefabUtility.DisconnectPrefabInstance(currentMap);
+		Debug.Log(currentMap.name + " saved!");
     }
 	
 	
@@ -147,6 +149,9 @@ public class MapEditWindow : EditorWindow {
 			case TileType.Basic:
 				prefabPath = "Assets/Prefabs/Tiles/Basic Tile.prefab";
 				break;
+			case TileType.Starting:
+				prefabPath = "Assets/Prefabs/Tiles/Starting Tile.prefab";
+				break;			
 			case TileType.Conveyor:
 				prefabPath = "Assets/Prefabs/Tiles/Conveyor Tile.prefab";
 				break;
