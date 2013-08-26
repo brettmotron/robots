@@ -84,12 +84,33 @@ public class MapEditWindow : EditorWindow {
 			if (GUILayout.Button("Add Wall " + ((Facing)i).ToString())) {
 				AddWallInDirection((Facing)i);	
 			}
+			if (GUILayout.Button("Rotate Wall " + ((Facing)i).ToString())) {
+				RotateWallAtDirection((Facing)i);	
+			}
 			if (GUILayout.Button("Remove Wall " + ((Facing)i).ToString())) {
 				RemoveWallInDirection((Facing)i);	
 			}
 			
 			EditorGUILayout.EndHorizontal();
 		}
+		
+		EditorGUILayout.EndVertical();
+		
+		EditorGUILayout.LabelField("Replace Walls");
+		
+		EditorGUILayout.BeginVertical();		
+		
+		
+		for (int i=0; i < 4; i++) {
+			EditorGUILayout.BeginHorizontal();
+			EditorGUILayout.LabelField(((Facing)i).ToString());
+			for (int j=0; j < (int)WallType.MAX; j++) {
+				if (GUILayout.Button(((WallType)j).ToString())) {
+					ChangeWallInDirection((Facing)i, (WallType)j);
+				}
+			}			
+			EditorGUILayout.EndHorizontal();
+		}		
 		
 		EditorGUILayout.EndVertical();
 	}
@@ -187,6 +208,7 @@ public class MapEditWindow : EditorWindow {
 			newTile.x_pos = tile.x_pos;
 			newTile.y_pos = tile.y_pos;
 			newTile.facing = tile.facing;
+			newTile.adjacentWalls = tile.adjacentWalls;
 			
 			newTile.Setup();
 			
@@ -263,6 +285,24 @@ public class MapEditWindow : EditorWindow {
 		}
 	}
 	
+	
+	void RotateWallAtDirection(Facing direction) {
+		GrabTilesFromSelection();
+		
+		foreach (Tile tile in selectedTiles) {
+			Wall wallToRotate = tile.adjacentWalls[(int)direction];
+			
+			if (null == wallToRotate) {
+				Debug.Log("Wall doesn't exist in that direction!");
+				continue;
+			}
+			
+			wallToRotate.transform.Rotate(0, 180, 0);
+			wallToRotate.facing = Utils.UTurnFacing(wallToRotate.facing);
+		}
+	}
+	
+	
 	void RemoveWallInDirection(Facing direction) {
         GrabTilesFromSelection();
 
@@ -285,5 +325,65 @@ public class MapEditWindow : EditorWindow {
 			
 			DestroyImmediate(wallToRemove.gameObject);
 		}			
+	}
+	
+	
+	void ChangeWallInDirection(Facing direction, WallType newType) {
+		GrabTilesFromSelection();
+		
+		string prefabPath = "";
+		Wall newWall = null;
+		
+		switch(newType) {
+			case WallType.Basic:
+				prefabPath = "Assets/Prefabs/Walls/Basic Wall.prefab";
+				break;
+			case WallType.Laser:
+				prefabPath = "Assets/Prefabs/Walls/Laser Wall.prefab";
+				break;			
+			default:
+				Debug.Log("No path for replacement prefab!");
+				break;
+		}
+		
+		var prefab = Resources.LoadAssetAtPath(prefabPath, typeof(Wall));
+					
+		if (null == prefab) {
+			Debug.Log("Replacement prefab not found!");	
+			return;
+		}		
+		
+		
+		foreach (Tile tile in selectedTiles) {
+			Wall wallToChange = tile.adjacentWalls[(int)direction];
+			
+			if (null == wallToChange) {
+				Debug.Log("Wall doesn't exist in that direction!");
+				continue;
+			}
+			
+			if (wallToChange.wallType == newType) {
+				Debug.Log("Existing wall is already this type.");
+				continue;
+			}
+			
+			newWall = (Wall)GameObject.Instantiate(prefab, wallToChange.transform.position, wallToChange.transform.rotation);
+			newWall.transform.parent = wallToChange.transform.parent;
+			newWall.facing = wallToChange.facing;
+			newWall.adjacentTiles = wallToChange.adjacentTiles;
+			newWall.Setup();
+			TileVisualizer.instance.SetVisualizationForWall(newWall);
+			
+			foreach (Tile adjTile in wallToChange.adjacentTiles) {
+				if (adjTile.adjacentWalls[(int)direction] == wallToChange) {
+					adjTile.adjacentWalls[(int)direction] = newWall;
+				}
+				if (adjTile.adjacentWalls[(int)Utils.UTurnFacing(direction)] == wallToChange) {
+					adjTile.adjacentWalls[(int)Utils.UTurnFacing(direction)] = newWall;	
+				}				
+			}
+			
+			DestroyImmediate(wallToChange.gameObject);
+		}
 	}
 }

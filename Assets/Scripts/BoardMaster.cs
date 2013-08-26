@@ -22,11 +22,11 @@ public class BoardMaster : MonoBehaviour {
 	public int gridSizeY;
 	public float tileSize;
 	public float tileSeparation;
-
-    [SerializeField]
-	public Tile[,] grid;
+	
+	int tileResponsesReceived;
 
     public TileGrid betterGrid;
+	List<Robot> robots = new List<Robot>();
 	
 	Transform myTransform;
 	
@@ -37,10 +37,9 @@ public class BoardMaster : MonoBehaviour {
 	
 	public void Setup(int xSize, int ySize) {
 		Awake();
+		
 		gridSizeX = xSize;
 		gridSizeY = ySize;
-		
-		grid = new Tile[xSize,ySize];
 
         betterGrid = new TileGrid();
         betterGrid.column = new TileGrid.TileList[xSize];
@@ -62,8 +61,6 @@ public class BoardMaster : MonoBehaviour {
 				newTile.transform.parent = myTransform;
 				
 				newTile.Setup();
-				
-				grid[i,j] = newTile;
 
                 betterGrid.column[i].row[j] = newTile;
 
@@ -80,7 +77,7 @@ public class BoardMaster : MonoBehaviour {
 
 		tile.x_pos = xPos;
 		tile.y_pos = yPos;
-		//grid[xPos,yPos] = tile;
+		
         betterGrid.column[xPos].row[yPos] = tile;
 	}
 	
@@ -115,7 +112,7 @@ public class BoardMaster : MonoBehaviour {
 			return null;
 		}		
 		
-		//Tile resultTile = grid[newX, newY];
+		
         Tile resultTile = betterGrid.column[newX].row[newY];
 		return resultTile;
 	}
@@ -142,15 +139,95 @@ public class BoardMaster : MonoBehaviour {
 		return startingList[Random.Range(0, startingList.Count)];
     }
 
+    public void ReceiveTileResponse() {
+		tileResponsesReceived++;	
+	}
+	
+	
+	public IEnumerator ProcessTurn(List<Robot> robotList) {
+		robots = robotList;
+		
+		Debug.Log("Processing Turn.");
+		for(int phase = 1; phase <= 5; phase++) {
+			yield return StartCoroutine(ProcessPhase(phase));	
+		}
+		Debug.Log("Done processing turn.");
+		
+		GameMaster.SharedInstance.TurnComplete();
+	}
+	
+	
+	IEnumerator ProcessPhase(int phaseNum) {
+		Debug.Log("Processing Phase " + phaseNum);
+		yield return StartCoroutine(ProcessRobots());	
+		yield return StartCoroutine(ProcessBoardEffects(phaseNum));
+		Debug.Log("Done processing Phase " + phaseNum);
+	}
 
-    //KILL ME
+	
+	IEnumerator ProcessRobots() {
+		foreach (Robot robot in robots) {
+			yield return StartCoroutine(robot.ProcessNextCommand());	
+		}
+	}
+	
 
-    public IEnumerator ProcessBoardEffects(Robot robot)
-    {
-        Tile tile = robot.currentTile;
-        yield return StartCoroutine(tile.ProcessEffect(robot));
+    IEnumerator ProcessBoardEffects(int phaseNum)
+    {	
+		Debug.Log("Beginning board effects.");
+		yield return StartCoroutine(ProcessConveyors());
+		yield return StartCoroutine(ProcessRotations());
+		Debug.Log("Board effects complete.");
     }
-
+	
+	IEnumerator ProcessConveyors() {
+		Debug.Log("Beginning to process conveyors.");
+		
+		tileResponsesReceived = 0;
+		
+		for (int i = 0; i < gridSizeX; ++i) {
+			for (int j = 0; j < gridSizeY; ++j) {
+				Tile tileToProcess = betterGrid.column[i].row[j];
+				if (tileToProcess.tileType == TileType.Conveyor) {
+					StartCoroutine(tileToProcess.ProcessEffect());
+				} else {
+					ReceiveTileResponse();
+				}
+			}
+		}	
+		
+		while (tileResponsesReceived < gridSizeX*gridSizeY) {
+			yield return null;	
+		}
+		
+		Debug.Log("Conveyors processed!");
+	}
+	
+	
+	IEnumerator ProcessRotations() {
+		Debug.Log("Beginning to process rotations.");
+		
+		tileResponsesReceived = 0;
+		
+		for (int i = 0; i < gridSizeX; ++i) {
+			for (int j = 0; j < gridSizeY; ++j) {
+				Tile tileToProcess = betterGrid.column[i].row[j];
+				if (tileToProcess.tileType == TileType.RotationLeft || tileToProcess.tileType == TileType.RotationRight) {
+					StartCoroutine(tileToProcess.ProcessEffect());
+				} else {
+					ReceiveTileResponse();
+				}
+			}
+		}	
+		
+		while (tileResponsesReceived < gridSizeX*gridSizeY) {
+			yield return null;	
+		}
+		
+		Debug.Log("Rotations processed!");
+	}	
+	
+	
     public Tile GetForwardTile(Tile currentTile, Facing direction, out Vector3 position)
     {
         int offsetX = 0;
@@ -212,8 +289,13 @@ public class BoardMaster : MonoBehaviour {
             robot.transform.position += dir * Time.deltaTime;
             yield return null;
         }
-
+		
+		robot.currentTile.currentRobot = null;
         robot.currentTile = newTile;
+		if (robot.currentTile) {
+			robot.currentTile.currentRobot = robot;
+		}
+		
         robot.transform.position = pos;
 
         if (null == newTile) {
@@ -247,4 +329,6 @@ public class BoardMaster : MonoBehaviour {
         robot.facing = newFacing;
         robot.transform.localEulerAngles = targetAngle * Vector3.up;
     }	
+	
+
 }

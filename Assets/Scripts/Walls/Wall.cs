@@ -19,5 +19,6 @@ public abstract class Wall : MonoBehaviour {
 
 public enum WallType {
 	Basic,
+	Laser,
 	MAX
 }

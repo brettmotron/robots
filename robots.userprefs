@@ -1,6 +1,19 @@
 ﻿<Properties>
   <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" />
-  <MonoDevelop.Ide.Workbench />
+  <MonoDevelop.Ide.Workbench ActiveDocument="Assets\Scripts\Robots\RobotController.cs">
+    <Files>
+      <File FileName="Assets\Scripts\Walls\LaserWall.cs" Line="12" Column="1" />
+      <File FileName="Assets\Scripts\Walls\BasicWall.cs" Line="1" Column="1" />
+      <File FileName="Assets\Scripts\Walls\Wall.cs" Line="1" Column="1" />
+      <File FileName="Assets\Scripts\Robots\Robot.cs" Line="1" Column="1" />
+      <File FileName="Assets\Scripts\BoardMaster.cs" Line="1" Column="1" />
+      <File FileName="Assets\Scripts\Robots\RobotController.cs" Line="52" Column="2" />
+      <File FileName="Assets\Scripts\Command Cards\CardVisualizer.cs" Line="33" Column="1" />
+      <File FileName="Assets\Scripts\GameMaster.cs" Line="1" Column="1" />
+      <File FileName="Assets\Scripts\Command Cards\CommandCard.cs" Line="7" Column="2" />
+      <File FileName="Assets\Scripts\Command Cards\CardSlot.cs" Line="10" Column="18" />
+    </Files>
+  </MonoDevelop.Ide.Workbench>
   <MonoDevelop.Ide.DebuggingService.Breakpoints>
     <BreakpointStore />
   </MonoDevelop.Ide.DebuggingService.Breakpoints>

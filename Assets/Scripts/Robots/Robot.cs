@@ -18,14 +18,18 @@ public class Robot : MonoBehaviour {
 	
 	public Tile currentTile;
 	public Facing facing;
+	public int maxHealth;
+	int health;
+	public int Health {
+		get {
+			return health;	
+		}
+	}
 	public bool isDead;
 	
-	List<Command> commandList;
+	List<Command> commandList = new List<Command>();
 	int commandListLimit = 5;
 	int currentCommandIndex;
-	bool readyToProcessCommand = true;
-	bool commandsFinished;
-	bool hasCompletedStep;
 	
 	delegate IEnumerator CommandMethod();
 	
@@ -49,6 +53,8 @@ public class Robot : MonoBehaviour {
 			Backward1 = new CommandMethod(BackwardOneCommand);
 			Commands = new CommandMethod[] {() => {return null;}, Forward1, Forward2, Forward3, RotateLeft, RotateRight, UTurn, Backward1};
 		}
+		
+		GameMaster.SharedInstance.RegisterRobot(this);
 	}
 	
 	void Start() {
@@ -59,45 +65,20 @@ public class Robot : MonoBehaviour {
 		
 		transform.rotation = Utils.RotationForFacing(facing);
 	}
-		
+
 	
-	void Update() {
-		if (commandList.Count == commandListLimit) {
-			if (readyToProcessCommand) {
-				StartCoroutine(ProcessNextCommand());
-			}
-		}	
-		
-		if (commandsFinished) {
-			ClearCommandList();
-		}
-	}
-	
-	IEnumerator ProcessNextCommand() {
+	public IEnumerator ProcessNextCommand() {
 		if (isDead) {
             yield break;	
 		}
 		
-		
 		if (currentCommandIndex < commandListLimit) {
-			readyToProcessCommand = false;
 			yield return StartCoroutine(Commands[(int)commandList[currentCommandIndex]]());
-			yield return StartCoroutine(ProcessBoardEffects());
-			readyToProcessCommand = true;			
-		} else {
-			commandsFinished = true;	
-		}
+		} 
 		
 		++currentCommandIndex;	
 	}
-	
-	IEnumerator ProcessBoardEffects() {
-		if (isDead) {
-			yield break;
-		}
-		
-		yield return StartCoroutine(BoardMaster.SharedInstance.ProcessBoardEffects(this));
-	}
+
 	
 	public void QueueCommand(Command command) {
 		if (commandList.Count < commandListLimit) {
@@ -108,10 +89,9 @@ public class Robot : MonoBehaviour {
 		}
 	}
 	
-	void ClearCommandList() {
+	public void ClearCommandList() {
 		commandList.Clear();
 		currentCommandIndex = 0;				
-		commandsFinished = false;
 	}
 	
 	public IEnumerator ForwardOneCommand() {
@@ -171,12 +151,16 @@ public class Robot : MonoBehaviour {
 			yield return null;	
 		}
 		
-		currentTile = newTile;
+		currentTile.currentRobot = null;
+        currentTile = newTile;
+		if (currentTile) {
+			currentTile.currentRobot = this;
+		}
+		
 		transform.position = pos;
 		
 		if (null == newTile) {
-			Debug.Log("I'm dead!");
-			isDead = true;
+			Die();
 		}		
 	}
 	
@@ -193,12 +177,16 @@ public class Robot : MonoBehaviour {
 			yield return null;	
 		}
 		
-		currentTile = newTile;
+		currentTile.currentRobot = null;
+        currentTile = newTile;
+		if (currentTile) {
+			currentTile.currentRobot = this;
+		}
+		
 		transform.position = pos;
 		
 		if (null == newTile) {
-			Debug.Log("I'm dead!");
-			isDead = true;
+			Die();
 		}		
 	}
 	
@@ -230,5 +218,24 @@ public class Robot : MonoBehaviour {
 		}
 		facing = newFacing;
 		transform.localEulerAngles = targetAngle * Vector3.up;	
+	}
+	
+	
+	public void Die() {
+		Debug.Log("I'm dead!");
+		isDead = true;	
+	}
+	
+	
+	public void TakeDamage(int amount) {
+		health -= amount;
+		
+		if (health <= 0) {
+			Die();	
+		}
+	}
+	
+	public void TakeHealing(int amount) {
+		health = Mathf.Min(health + amount, maxHealth);	
 	}
 }

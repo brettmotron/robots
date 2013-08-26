@@ -4,89 +4,98 @@ using System.Collections.Generic;
 
 public class RobotController : MonoBehaviour {
 	
+	public static RobotController SharedInstance;
 	public Robot robotToControl;
 	public CommandDeck commandDeck;
 	public CardVisualizer visualizer;
 	
 	public List<Robot.Command> commandHand;
-	public List<Robot.Command> activeCommands;
+	public Robot.Command[] activeCommands;
+	
+	internal int selectedSlot = -1;
+	
+	void Awake() {
+		SharedInstance = this;	
+	}
 	
 	void Start() {
 		commandDeck = new CommandDeck();
 		commandDeck.CreateRandomDeck(60);
 		
 		commandHand = new List<Robot.Command>();
-		activeCommands = new List<Robot.Command>();
+		activeCommands = new Robot.Command[5];
+		
+		DrawNewHand();
 	}
 	
-	// Update is called once per frame
-	void Update () {
-		if (Input.GetKeyUp(KeyCode.N)) {
-			//Generate Command Hand
-			DrawNewHand();
+	
+	public void ConfirmCommands() {
+	
+		for (int i=0; i<5; ++i) {
+			robotToControl.QueueCommand(activeCommands[i]);	
 		}
 		
-		if (Input.GetKeyUp(KeyCode.Return)) {
-			//Finalize active cards
-			if (activeCommands.Count != 5) {
-				Debug.Log("Incomplete command set.");
-			}
-			
-			foreach (Robot.Command command in activeCommands) {
-				robotToControl.QueueCommand(command);	
-			}
-		}
-		
-		if (Input.GetKeyUp(KeyCode.Alpha1)) {
-			AddCardToActiveCards(0);	
-		}
-		if (Input.GetKeyUp(KeyCode.Alpha2)) {
-			AddCardToActiveCards(1);	
-		}
-		if (Input.GetKeyUp(KeyCode.Alpha3)) {
-			AddCardToActiveCards(2);	
-		}
-		if (Input.GetKeyUp(KeyCode.Alpha4)) {
-			AddCardToActiveCards(3);	
-		}
-		if (Input.GetKeyUp(KeyCode.Alpha5)) {
-			AddCardToActiveCards(4);	
-		}
-		if (Input.GetKeyUp(KeyCode.Alpha6)) {
-			AddCardToActiveCards(5);	
-		}
-		if (Input.GetKeyUp(KeyCode.Alpha7)) {
-			AddCardToActiveCards(6);	
-		}
-		if (Input.GetKeyUp(KeyCode.Alpha8)) {
-			AddCardToActiveCards(7);	
-		}
-		if (Input.GetKeyUp(KeyCode.Alpha9)) {
-			AddCardToActiveCards(8);	
-		}
-		if (Input.GetKeyUp(KeyCode.Alpha0)) {
-			AddCardToActiveCards(9);	
-		}		
+		GameMaster.SharedInstance.SetRobotReady(robotToControl);
+		visualizer.SetCardVisibility(false);
+		visualizer.ClearHandCards();		
 	}
 	
-	void AddCardToActiveCards(int index) {
-		if (activeCommands.Count >= 5) {
-			Debug.Log("Too many commands!");
-			return;
+	
+	public bool CommandsAreValid() {
+		for (int i=0; i<5; ++i) {
+			if (activeCommands[i] == Robot.Command.None) {
+				return false;
+			}
 		}
 		
-		
-		var temp = commandHand[index];
-		activeCommands.Add(temp);
-		commandHand[index] = Robot.Command.None;
-		
+		return true;
+	}
+	
+	
+	void ResetActiveCommands() {
+		for (int i=0; i<5; ++i) {
+			activeCommands[i] = Robot.Command.None;	
+		}
+	}
+	
+	
+	public void ResetRobot() {
+		ResetActiveCommands();
+		robotToControl.ClearCommandList();		
+	}
+	
+	public void DrawNewHand() {
+		commandDeck.Shuffle();
+		commandHand = commandDeck.DrawCards(10);
+	
+		visualizer.SetCardVisibility(true);
 		visualizer.UpdateVisualizations(activeCommands, commandHand);
 	}
 	
-	void DrawNewHand() {
-		commandDeck.Shuffle();
-		commandHand = commandDeck.DrawCards(10);
-		activeCommands.Clear();
+	public void MoveCommand(int fromSlot, int toSlot) {
+		Robot.Command temp;
+		
+		if (fromSlot < 5) {
+			temp = activeCommands[fromSlot];
+			if (toSlot < 5) {
+				activeCommands[fromSlot] = activeCommands[toSlot];
+				activeCommands[toSlot] = temp;
+			} else {
+				activeCommands[fromSlot] = commandHand[toSlot-5];
+				commandHand[toSlot-5] = temp;
+			}
+		} else {
+			temp = commandHand[fromSlot-5];
+			if (toSlot < 5) {
+				commandHand[fromSlot-5] = activeCommands[toSlot];
+				activeCommands[toSlot] = temp;
+			} else {
+				commandHand[fromSlot-5] = commandHand[toSlot-5];
+				commandHand[toSlot-5] = temp;
+			}
+		}
+		
+		selectedSlot = -1;
 		
 		visualizer.UpdateVisualizations(activeCommands, commandHand);
 	}

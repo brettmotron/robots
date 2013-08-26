@@ -13,6 +13,8 @@ public abstract class Tile : MonoBehaviour {
 	
 	public Facing facing;
 	
+	public Robot currentRobot;
+	
     [SerializeField]
 	public Wall[] adjacentWalls = new Wall[4];
 	
@@ -22,7 +24,7 @@ public abstract class Tile : MonoBehaviour {
 		
 	}
 	
-	public virtual IEnumerator ProcessEffect(Robot robot) {
+	public virtual IEnumerator ProcessEffect() {
 		//Debug.Log("I'm a basic tile and don't contribute much");
 		yield return null;
 	}

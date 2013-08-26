@@ -3,22 +3,25 @@ using System.Collections;
 using System.Collections.Generic;
 
 public class CardVisualizer : MonoBehaviour {
-
-	public List<GameObject> cardSlots;
-	public List<GameObject> handSlots;
+	
+	public GameObject cardUI;
+	public List<CardSlot> cardSlots;
+	public List<CardSlot> handSlots;
 	public List<CommandCard> commandCardPrefabs;
-	public List<GameObject> currentCards = new List<GameObject>();
+	public List<GameObject> programmedCards = new List<GameObject>();
 	public List<GameObject> currentHandCards = new List<GameObject>();
 	
-	public void SetActiveCards(List<Robot.Command> commands) {
-		for (int i=0; i<commands.Count; ++i) {
+	public void SetActiveCards(Robot.Command[] commands) {
+		for (int i=0; i<commands.Length; ++i) {
 			var newCard = CreateCommandCardForCommand(commands[i]);
 			if (newCard) {
 				newCard.transform.parent = cardSlots[i].transform;
+				cardSlots[i].currentCard = newCard;
 				newCard.transform.localPosition = Vector3.zero;
-				currentCards.Add(newCard.gameObject);
+				newCard.GetComponent<UITexture>().MakePixelPerfect();
+				programmedCards.Add(newCard.gameObject);
 			} else {
-				currentCards.Add(null);	
+				programmedCards.Add(null);	
 			}
 			
 		}
@@ -29,7 +32,9 @@ public class CardVisualizer : MonoBehaviour {
 			var newCard = CreateCommandCardForCommand(commands[i]);
 			if (newCard) {
 				newCard.transform.parent = handSlots[i].transform;
+				handSlots[i].currentCard = newCard;
 				newCard.transform.localPosition = Vector3.zero;
+				newCard.GetComponent<UITexture>().MakePixelPerfect();
 				currentHandCards.Add(newCard.gameObject);
 			} else {
 				currentHandCards.Add(null);	
@@ -39,23 +44,27 @@ public class CardVisualizer : MonoBehaviour {
 	}
 	
 	void ClearCurrentCards() {
-		foreach (GameObject gameObj in currentCards) {
+		foreach (GameObject gameObj in programmedCards) {
 			Destroy(gameObj);	
 		}
 		
-		currentCards.Clear();
+		programmedCards.Clear();
 		
+		ClearHandCards();
+	}
+	
+	public void UpdateVisualizations(Robot.Command[] activeCommands, List<Robot.Command> handCommands) {
+		ClearCurrentCards();
+		SetActiveCards(activeCommands);
+		SetHandCards(handCommands);
+	}
+	
+	public void ClearHandCards() {
 		foreach (GameObject gameObj in currentHandCards) {
 			Destroy(gameObj);	
 		}
 		
-		currentHandCards.Clear();		
-	}
-	
-	public void UpdateVisualizations(List<Robot.Command> activeCommands, List<Robot.Command> handCommands) {
-		ClearCurrentCards();
-		SetActiveCards(activeCommands);
-		SetHandCards(handCommands);
+		currentHandCards.Clear();				
 	}
 	
 	
@@ -66,8 +75,14 @@ public class CardVisualizer : MonoBehaviour {
 			}
 		}
 		
-		Debug.Log("No appropriate card found for command: " + command);
+		if (command != Robot.Command.None) {
+			Debug.Log("No appropriate card found for command: " + command);
+		}
+		
 		return null;
 	}
 	
+	public void SetCardVisibility(bool visible) {
+		cardUI.SetActive(visible);
+	}
 }
