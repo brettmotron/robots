@@ -16,7 +16,6 @@ public class CardVisualizer : MonoBehaviour {
 			var newCard = CreateCommandCardForCommand(commands[i]);
 			if (newCard) {
 				newCard.transform.parent = cardSlots[i].transform;
-				cardSlots[i].currentCard = newCard;
 				newCard.transform.localPosition = Vector3.zero;
 				newCard.GetComponent<UITexture>().MakePixelPerfect();
 				programmedCards.Add(newCard.gameObject);
@@ -24,6 +23,7 @@ public class CardVisualizer : MonoBehaviour {
 				programmedCards.Add(null);	
 			}
 			
+			cardSlots[i].currentCard = newCard;
 		}
 	}
 	
@@ -32,7 +32,6 @@ public class CardVisualizer : MonoBehaviour {
 			var newCard = CreateCommandCardForCommand(commands[i]);
 			if (newCard) {
 				newCard.transform.parent = handSlots[i].transform;
-				handSlots[i].currentCard = newCard;
 				newCard.transform.localPosition = Vector3.zero;
 				newCard.GetComponent<UITexture>().MakePixelPerfect();
 				currentHandCards.Add(newCard.gameObject);
@@ -40,6 +39,7 @@ public class CardVisualizer : MonoBehaviour {
 				currentHandCards.Add(null);	
 			}
 			
+			handSlots[i].currentCard = newCard;
 		}		
 	}
 	
